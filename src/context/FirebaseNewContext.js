@@ -12,18 +12,38 @@ import LoadingScreen from "../screens/LoadingScreen";
 //     firebase.initializeApp(config);
 // }
 
-const db = firebase.firestore();
+// const db = firebase.firestore();
 
-export const fetchRooms = async () => {
-    const rooms = []
-    const querySnapshot = await db
-        .collection('chatrooms')
-        .get();
-    querySnapshot.forEach((doc) => {
+// export const fetchRooms = (setRooms) => {
+
+//     db.collection("chatrooms")
+//         .onSnapshot((querySnapshot) => {
+//             var rooms = [];
+//             querySnapshot.forEach((doc) => {
+//                 rooms.push(doc.data());
+                
+//             });
+//         if(setRooms){
+//             setRooms(rooms)
+//         }
+//         console.log("Current rooms in db: ", rooms);
+
+//         return rooms;
+//     });
+
+//     // const rooms = []
+//     // const querySnapshot = await db
+//     //     .collection('chatrooms')
+//     //     .orderBy('createdAt', 'desc')
+//     //     .get();
+
+//     // querySnapshot.forEach((doc) => {
         
-        let roomData = doc.data();
-        rooms.push(roomData);
-    });
-    console.log("fetched room data: ", rooms)
-    return rooms
-};
+//     //     let roomData = doc.data();
+//     //     roomData.roomId = doc.id;
+//     //     rooms.push(roomData);
+//     // });
+//     // console.log("fetched room data: ", rooms)
+//     // return rooms
+
+// };

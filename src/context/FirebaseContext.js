@@ -6,6 +6,8 @@ import "firebase/auth";
 import "firebase/firestore";
 import config from "../config/firebase";
 
+import moment from "moment";
+
 //import LoadingScreen from "../screens/LoadingScreen";
 
 const FirebaseContext = createContext();
@@ -15,7 +17,7 @@ if (!firebase.apps.length) {
 }
 
 const db = firebase.firestore();
-
+const currentDate = moment().format('MMMM Do YYYY, h:mm:ss a');
 
 const Firebase = {
 
@@ -30,7 +32,8 @@ const Firebase = {
         try {
             await db.collection("chatrooms").doc(roomId).set({
                 name: roomName,
-                id: roomId
+                id: roomId,
+                createdAt: currentDate
             });
         }catch (error) {
             console.log("Error @createChatRoom: ", error.message);
@@ -131,24 +134,28 @@ const Firebase = {
         }
     },
 
-    fetchRooms: async () => {
+    fetchRooms: (setRooms) => {
 
-        const rooms = [];
-        const querySnapshot = await db
-            .collection('chatrooms')
-            .onSnapshot(querySnapshot => {
-                querySnapshot.forEach((doc) => {
-                    rooms.push(doc.data());
-                });
+        db.collection("chatrooms")
+        .onSnapshot((querySnapshot) => {
+            var rooms = [];
+            querySnapshot.forEach((doc) => {
+                rooms.push(doc.data());
+                
             });
-            console.log("room data: ", rooms)
+
+            console.log("Current rooms in fetchRooms: ", rooms);
+            if(setRooms){
+                setRooms(rooms)
+            }
+          
+            return rooms;
+        });
         
 
         // if(loading) {
         //     return <LoadingScreen />
         // }
-
-        return rooms
 
     // const [threads, setThreads] = useState([]);
     // const [loading, setLoading] = useState(true);

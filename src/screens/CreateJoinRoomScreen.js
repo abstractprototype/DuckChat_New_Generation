@@ -19,7 +19,7 @@ const CreateJoinRoomScreen = ({ navigation }) => {
     const handleButtonPress = async () => {
         setLoading(true);
 
-        const room = { roomName };
+        const room =  {roomName};
 
         if(roomName.length > 0) {
             try {

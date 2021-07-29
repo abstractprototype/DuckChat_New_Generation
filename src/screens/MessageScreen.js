@@ -1,7 +1,8 @@
 import React, {useState, useEffect, useContext} from "react";
-import { View, Text, StyleSheet, Button, FlatList } from "react-native";
+import { View, Text, StyleSheet, Button, FlatList, RefreshControl } from "react-native";
 import { List, Divider } from 'react-native-paper';
 import {Body, Container, H3, Header, ListItem, Title} from 'native-base'
+import LoadingScreen from "./LoadingScreen";
 
 import { FirebaseContext } from "../context/FirebaseContext";
 import { fetchRooms } from "../context/FirebaseNewContext";
@@ -9,58 +10,49 @@ import { fetchRooms } from "../context/FirebaseNewContext";
 // import firebase from "firebase";
 // import "firebase/firestore";
 
-const DATA = [
-    {
-      id: 'bd7acbea-c1b1-46c2-aed5-3ad53abb28ba',
-      name: 'First Item',
-    },
-    {
-      id: '3ac68afc-c605-48d3-a4f8-fbd91aa97f63',
-      name: 'Second Item',
-    },
-    {
-      id: '58694a0f-3da1-471f-bd96-145571e29d72',
-      name: 'Third Item',
-    },
-  ];
 
 export default MessageScreen = ({ navigation }) => {
 
-    //const firebase = useContext(FirebaseContext);
-   
-    //const cRooms = firebase.fetchRooms;
+     const firebase =  useContext(FirebaseContext);
+     //const mRooms = firebase.fetchRooms;
 
     const [rooms, setRooms] = useState([])
+    const [loading, setLoading] = useState(true);
+
+    // const getRooms = async() => {
+    //     const roomsData =  fetchRooms();
+    //     console.log("fetched rooms in getRooms(): ", roomsData)//undefined
+    //     //return roomsData
+    //     setRooms(roomsData);
+    // }
+    
 
     useEffect(() => {
-        getRooms();
 
+        //getRooms()
+        //setRooms(mRooms)
+        console.log("fetching my rooms: ", firebase.fetchRooms(setRooms))
+        
     }, [])
 
-    async function getRooms() {
-        const roomsData = await fetchRooms();
-        setRooms(roomsData);
+    useEffect(() => {
         
-    }
-    console.log("fetched rooms in message screen: ", rooms)
+        console.log("rooms is now: ", rooms) //undefined
 
-   
-    // if(loading) {
-    //     return <LoadingScreen />
-    // }
+    }, [rooms])
 
-    // useEffect(() => {
-    //     getRooms();
-    // }, []);
- 
-    // async function getRooms(){
-    //     const roomsData = await firebase.fetchRooms();
-    //     setThreads(roomsData.threads);
-    // }
-
-    // console.log("Room data in MessageScreen", threads);
-
-
+        // getRooms().then((rooms) => {
+        //     setRooms(rooms)
+        //     console.log("inside useEffect: ", rooms)
+        // }
+            
+        // ).catch((error) => 
+        //     console.log("Error: ", error.message)
+        // )
+        
+        // if (loading) {
+        // setLoading(false);
+        // }
 
         // useEffect(() => {
 
@@ -108,75 +100,28 @@ export default MessageScreen = ({ navigation }) => {
         //     return <LoadingScreen />
         // }
 
+        const Item = ({ title }) => (
+            <View style={styles.item}>
+              <Text style={styles.title}>{title}</Text>
+            </View>
+        );
 
-    // function renderPosts({item}) {
-    //     // <List.Item
-    //     //     title={item.name}
-    //     //     description='Item description'
-    //     //     titleNumberOfLines={1}
-    //     //     titleStyle={styles.listTitle}
-    //     //     descriptionStyle={styles.listDescription}
-    //     //     descriptionNumberOfLines={1}
-    //     // />
-
-    //     return(
-    //     <ListItem key={item.id} button>
-    //         <Body>
-    //             <H3 style={{lineHeight: 30,}}>
-    //                 {item.name}
-    //             </H3>
-    //             <Text numberOfLines={1}>{item.toString()}</Text>
-    //         </Body>
-    //     </ListItem>
-    //     );
+        const renderItem = ({ item }) => (
+            <Item title={item.name.roomName} />
+        );
         
-    //}
-
-    // const renderPost = ({ item }) => {
-    //     <List.item
-    //                     title={item}
-    //                     description='Item description'
-    //                     titleNumberOfLines={1}
-    //                     titleStyle={styles.listTitle}
-    //                     descriptionStyle={styles.listDescription}
-    //                     descriptionNumberOfLines={1}
-    //     />
-    //}
  
-
-    const myKeyExtractor = ({item}) => {
-        return item.id
-    }
-
-    const renderItem = ({item}) => {
-        return <View>
-            <Text>{item.name}</Text>
-        </View>
-    }
-
         return (
             <View style={styles.container}>
                 
-                {/* <FlatList
+                <FlatList
                     data={rooms}
-                    keyExtractor={(item) => item.id}
-                    ItemSeparatorComponent={() => <Divider />}
-                    renderItem={({ renderPost })}
-                /> */}
-
-                <FlatList>
-                    style={styles.rooms}
-                    data={DATA}
                     renderItem={renderItem}
-                    keyExtractor={myKeyExtractor}
-                    ItemSeparatorComponent={() => <Divider />}
+                    keyExtractor={item => item.id}
                     showsVerticalScrollIndicator={false}
-                
-                </FlatList>
+          
+                />
 
-                
-
-                <Text>{DATA.name}</Text>
                 <Button 
                     title="Press me to create a chat room"
                     color="#f194ff"
@@ -206,5 +151,8 @@ const styles = StyleSheet.create({
     },
     rooms: {
         marginHorizontal: 16
+    },
+    title: {
+        fontSize: 32,
     },
 });
