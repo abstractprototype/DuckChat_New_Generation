@@ -29,17 +29,23 @@ export default MessageScreen = ({ navigation }) => {
 
     useEffect(() => {
 
-        //getRooms()
-        //setRooms(mRooms)
         console.log("fetching my rooms: ", firebase.fetchRooms(setRooms))
+        
+        if (loading) {
+            setLoading(false);
+        }
         
     }, [])
 
     useEffect(() => {
         
-        console.log("rooms is now: ", rooms) //undefined
+        console.log("rooms is now: ", rooms)
 
     }, [rooms])
+
+    if(loading) {
+        return <LoadingScreen />
+    }
 
         // getRooms().then((rooms) => {
         //     setRooms(rooms)
@@ -50,9 +56,7 @@ export default MessageScreen = ({ navigation }) => {
         //     console.log("Error: ", error.message)
         // )
         
-        // if (loading) {
-        // setLoading(false);
-        // }
+    
 
         // useEffect(() => {
 
@@ -96,9 +100,7 @@ export default MessageScreen = ({ navigation }) => {
 
         // }, []);
 
-        // if(loading) {
-        //     return <LoadingScreen />
-        // }
+       
 
         const Item = ({ title }) => (
             <View style={styles.item}>
@@ -119,7 +121,6 @@ export default MessageScreen = ({ navigation }) => {
                     renderItem={renderItem}
                     keyExtractor={item => item.id}
                     showsVerticalScrollIndicator={false}
-          
                 />
 
                 <Button 

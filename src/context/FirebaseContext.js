@@ -19,6 +19,7 @@ if (!firebase.apps.length) {
 const db = firebase.firestore();
 const currentDate = moment().format('MMMM Do YYYY, h:mm:ss a');
 
+
 const Firebase = {
 
     getCurrentUser: () => {
@@ -33,29 +34,47 @@ const Firebase = {
             await db.collection("chatrooms").doc(roomId).set({
                 name: roomName,
                 id: roomId,
-                createdAt: currentDate
+                //createdAt: currentDate,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
             });
         }catch (error) {
             console.log("Error @createChatRoom: ", error.message);
         }
 
     },
-    createPost: async (text) => {
+    createPost: async (avatar, uName, text, time, imageUri) => {
 
+        const uid = Firebase.getCurrentUser().uid;
+        const profilePic = Firebase.getCurrentUser().profilePhotoUrl;
         const postId = uuid.v4(); //Generates a random room id
 
         try{
+            // const photo = Firebase.getBlob(imageUri);
+            // const imageRef = firebase.storage().ref("postImages").child(uid);
+            // imageRef.put(photo);
+            //const downloadUrl = await imageRef.getDownloadURL();
+
             await db.collection("posts").doc(postId).set({
+                avatar: avatar,
+                userid: uid,
+                username: uName,
                 postid: postId,
                 content: text,
-               
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                from: time
+                //picture: imageUri
             })
+
+      
+
         }catch(error){
             console.log("Error @createPost: ", error.message);
         }
 
+        
     
     },
+
 
     createUser: async (user) => {
         try {
@@ -137,6 +156,7 @@ const Firebase = {
     fetchRooms: (setRooms) => {
 
         db.collection("chatrooms")
+        .orderBy("timestamp", "asc")
         .onSnapshot((querySnapshot) => {
             var rooms = [];
             querySnapshot.forEach((doc) => {
@@ -144,109 +164,34 @@ const Firebase = {
                 
             });
 
-            console.log("Current rooms in fetchRooms: ", rooms);
-            if(setRooms){
+            //console.log("Current rooms in fetchRooms: ", rooms);
+            if(setRooms)
+            {
                 setRooms(rooms)
             }
           
             return rooms;
         });
-        
-
-        // if(loading) {
-        //     return <LoadingScreen />
-        // }
-
-    // const [threads, setThreads] = useState([]);
-    // const [loading, setLoading] = useState(true);
-
-    // useEffect(() => {
-    //     const unsubscribe = db
-    //         .collection('chatrooms')
-    //         .onSnapshot(querySnapshot => {
-    //             const threads = [];
-    //             querySnapshot.forEach(documentSnapshot => {
-    //                 threads.push({
-    //                     ...documentSnapshot.data(),
-    //                     //key: documentSnapshot.id,
-    //                 });
-    //             });
-    //             setThreads(threads);
-    //             console.log("fetched rooms: ", threads)
-    //             setLoading(false);
-
-    //             return {threads};
-    //         })
-    //     return () => unsubscribe();
-    // }, [])
-    // if(loading){
-    //     return <LoadingScreen />;
-    // }
-
-        // const rooms = [];
-        // const querySnapshot = await db
-        //     .collection("chatrooms")
-        //     .get();
-        // querySnapshot.forEach((doc) => {
-        //     let roomData = doc.data();
-        //     //roomData.id = doc.name;
-        //     rooms.push(roomData)
-        // });
-        // //console.log("Room Data: ", rooms);
-        // return {rooms};
-
-        // const [threads, setThreads] = useState([]);
-        // const [loading, setLoading] = useState(true);
-
-        // const unsubscribe = firebase.firestore()
-        //     .collection('chatrooms')
-        //     .onSnapshot((querySnapshot) => {
-
-        //         querySnapshot.forEach((doc) => {
-        //             threads.push(doc.data().name);
-        //         });
-                
-        //         setThreads(threads);
-        //         console.log("Threads: ", threads)
-        //         console.log("Fetched data: ", threads)
-
-        //         if(loading) {
-        //             setLoading(false);
-        //         }
-        //     });
-            
-        // //unsubscribe listener, cleanup/remove the listener so the app doesn't become slow
-        // return unsubscribe();
-
-        // useEffect(() => {
-
-        //     const unsubscribe = db
-        //         .collection('chatrooms')
-        //         .onSnapshot((querySnapshot) => {
-        //             const threads = [];
-        //             querySnapshot.forEach((doc) => {
-        //                 threads.push(doc.data().name);
-        //             });
-                    
-
-        //             setThreads(threads);
-        //             console.log("Threads: ", threads)
-
-        //             if(loading) {
-        //                 setLoading(false);
-        //             }
-        //         });
-            
-        //     //unsubscribe listener, cleanup/remove the listener so the app doesn't become slow
-        //     return () => unsubscribe();
-
-        // }, []);
-
-        // if(loading) {
-        //     return <LoadingScreen />
-        // }
     },
-        
+
+    fetchPosts: (setPosts) => {
+        db.collection("posts")
+        .orderBy("timestamp", "desc")
+        .onSnapshot((querySnapshot) => {
+            var posts = [];
+            querySnapshot.forEach((doc) => {
+                posts.push(doc.data());
+                
+            });
+            //console.log("Current posts in fetchPosts: ", posts);
+            if(setPosts)
+            {
+                setPosts(posts)
+            }
+            console.log(posts)
+            return posts;
+        });
+    },
 
     logOut: async () => {
         try {

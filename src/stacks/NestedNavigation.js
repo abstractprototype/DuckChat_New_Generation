@@ -11,7 +11,7 @@ const ChatRoomNavigator = () => {
     return (
         <Stack.Navigator screenOptions={{headerShown: false}}>
             <Stack.Screen 
-                name="ChatRoomScreen"
+                name="MessageScreen"
                 component = {MessageScreen}
             />
 

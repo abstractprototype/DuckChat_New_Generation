@@ -1,21 +1,18 @@
-import React, {useState, useContext} from 'react'
+import React, {useState, useEffect, useContext} from 'react'
 import { Image, View, Text, TextInput, StyleSheet, TouchableOpacity, FlatList, Modal, Button } from 'react-native'
 import {Ionicons} from "@expo/vector-icons"
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 
 import Colors from '../../constants/Colors'
-import tempData from '../../tempData'
 import moment from 'moment'
 import { FirebaseContext } from "../context/FirebaseContext";
 import { UserContext } from "../context/UserContext";
 import * as Permissions from "expo-permissions";
 import * as ImagePicker from "expo-image-picker";
-import { add } from 'react-native-reanimated'
-import { render } from 'react-dom'
 
 
    //Temporary posts data
-   post = [
+   const fakeData = [
     {
         id: "1",
         name: "Joe McKay",
@@ -60,15 +57,16 @@ import { render } from 'react-dom'
                     likes: 69,
                     comments: 23,
                 },
-
 ];
 
 export default FeedScreen = () => {
 
     const [modalOpen, setModalOpen] = useState(false);
     const [text, setText] = useState("");
-    const [image, setImage] = useState(null);
+    const [image, setImage] = useState();
     const [loading, setLoading] = useState(false);
+    const [posts, setPosts] = useState([]);
+    const [user, setUser] = useContext(UserContext);
     const firebase = useContext(FirebaseContext);
 
     const getPermission = async () => {
@@ -101,7 +99,6 @@ export default FeedScreen = () => {
 
         if (status !== "granted") {
             alert("We need permission to access your camera roll.");
-
             return;
         }
 
@@ -109,21 +106,16 @@ export default FeedScreen = () => {
     };
 
     const handlePost = async () => {
-        // firebase.shared
-        //     .addPost({ text: this.state.text.trim(), localUri: this.state.image })
-        //     .then(ref => {
-        //         this.setState({ text: "", image: null });
-        //     })
-        //     .catch(error => {
-        //         alert(error);
-        //     });
-
+        
         setLoading(true);
         const message = { text };
-
+        const imageUri = { image }; //The image being sent
+        const avatar = { uri: user.profilePhotoUrl }; //The user's profile picture
+        const uName = (user.username);
+        const from = (moment().fromNow()) ;
         if(text.length > 0) {
             try {
-                const createdPost = await firebase.createPost(message);
+                const createdPost = await firebase.createPost(avatar, uName, message, from, imageUri);
     
             } catch (error) {
                 console.log("Error @createChatRoom: ", error);
@@ -136,40 +128,102 @@ export default FeedScreen = () => {
 
     };
 
-    //Code for everything inside a single Post
-    const renderPost = ({ item }) => {
+    useEffect(() => {
+
+        firebase.fetchPosts(setPosts)
+        //console.log("fetching my posts: ", firebase.fetchPosts(setPosts))
+        
+        if (loading) {
+            setLoading(false);
+        }
+        
+    }, [])
+
+    useEffect(() => {
+        
+        posts
+        //console.log("posts is now: ", posts)
+
+    }, [posts])
+
+    if(loading) {
+        return <LoadingScreen />
+    }
+
+    // setInterval( () => {
+    //     const now = moment("YYYYMMDD").fromNow()
+    //     console.log(now);
+    // }, 5000)
+
+
+    // //Code for everything inside a single Post
+    //This block of code doesn't work because it is wrapped in {} instead of ()
+    // const renderPost = ({ item }) => {
  
+    //         <View style={styles.feedItem}>
+    //             <Image source={item.avatar} style={styles.avatar} />
+    //             <View style={{ flex: 1 }}>
+    //                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+    //                     <View>
+    //                         <Text style={styles.name}>{item.name}</Text>
+    //                         <Text style={styles.timestamp}>{moment(item.timestamp).fromNow()}</Text>
+    //                     </View>
+    //                     <Ionicons name="reorder-three-outline" size={24} color="#73788B" />
+    //                 </View>
+    //                 <Text style={styles.post}>{item.text}</Text>
+    //                 <Image source={item.image} style={styles.postImage} resizeMode="cover" />
+    //                 <View style={{ flexDirection: "row" }}>
+    //                     <View style={styles.postLikes}>
+    //                         <Ionicons name="heart-outline" size={24} color="#73788B" style={{ marginRight: 5 }} />
+    //                         <Text>
+    //                             {item.likes}
+    //                         </Text>
+    //                     </View>
+    //                     <View style={styles.postComments}>
+    //                         <Ionicons name="chatbubble-ellipses-outline" size={24} color="#73788B" style={{ marginRight: 5 }} />
+    //                         <Text>
+    //                             {item.comments}
+    //                         </Text>
+    //                     </View>
+    //                 </View>
+    //             </View>
+    //         </View>
+    
+    // }; //End code for single Post
+
+
+    // //Code for everything inside a single Post
+    const renderPost = ({ item }) => (
+
             <View style={styles.feedItem}>
                 <Image source={item.avatar} style={styles.avatar} />
                 <View style={{ flex: 1 }}>
                     <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                         <View>
-                            <Text style={styles.name}>{item.name}</Text>
-                            <Text style={styles.timestamp}>{moment(item.timestamp).fromNow()}</Text>
+                            <Text style={styles.name}>{item.username}</Text>
+                            <Text style={styles.timestamp}>{moment().fromNow()}</Text>
                         </View>
                         <Ionicons name="reorder-three-outline" size={24} color="#73788B" />
                     </View>
-                    <Text style={styles.post}>{item.text}</Text>
+                    <Text style={styles.post}>{item.content.text}</Text>
                     <Image source={item.image} style={styles.postImage} resizeMode="cover" />
                     <View style={{ flexDirection: "row" }}>
                         <View style={styles.postLikes}>
                             <Ionicons name="heart-outline" size={24} color="#73788B" style={{ marginRight: 5 }} />
                             <Text>
-                                {item.likes}
+                                {/* {item.likes} */}
                             </Text>
                         </View>
                         <View style={styles.postComments}>
                             <Ionicons name="chatbubble-ellipses-outline" size={24} color="#73788B" style={{ marginRight: 5 }} />
                             <Text>
-                                {item.comments}
+                                {/* {item.comments} */}
                             </Text>
                         </View>
                     </View>
                 </View>
             </View>
-    
-    }; //End code for single Post
-
+    ); //End code for single Post
 
 
     //Code for the whole Feed screen
@@ -177,21 +231,23 @@ export default FeedScreen = () => {
     
         <View style={styles.container}>
             <View style={styles.header}>
-                <Text style={styles.headerTitle}>My Feed</Text>
+            <Image source={          
+                    require("../../assets/ducklogo.png")    
+                } style={styles.headerImage}> 
+            </Image>
             </View>
 
             <FlatList 
                 style={styles.feed} 
-                data={post} 
+                data={posts} 
                 renderItem={renderPost} 
-                keyExtractor={(item) => item.id.toString()}
+                keyExtractor={(item, index) => item.id}
                 showsVerticalScrollIndicator={false}
                 >
             </FlatList>
 
             <Modal visible={modalOpen} animationType='slide'>
                 <View>
-
                     <View style={styles.modalHeader}>
                         <TouchableOpacity onPress={ () => setModalOpen(false)}>
                             <MaterialCommunityIcons name={"close-thick"} size={30}/>
@@ -204,13 +260,16 @@ export default FeedScreen = () => {
                             >
                             </Button>
                         </View>
-                        
                     </View>
                     
-                    
-
                     <View style={styles.inputContainer}>
-                        <Image source={require("../../assets/shinobu.jpg")} style={styles.avatar}></Image>
+                        <Image source={
+                            user.profilePhotoUrl === "default"
+                            ? require("../../assets/defaultProfilePhoto.jpg")
+                            : { uri: user.profilePhotoUrl }
+                        } style={styles.avatar}> 
+                        </Image>
+
                         <TextInput 
                             autoFocus={true} 
                             multiline={true} 
@@ -222,22 +281,20 @@ export default FeedScreen = () => {
                         </TextInput>
                     </View>
                     
-
-                    <TouchableOpacity style={styles.photo} onPress={addMedia}>
+                    <TouchableOpacity style={styles.photo} onPress={addMedia} source={{ uri: image }}>
                         <Ionicons name="md-camera" size={40} color="#D8D9DB" ></Ionicons>
                     </TouchableOpacity>
 
-                    {/* <View style={{ marginHorizontal: 32, marginTop: 32, height: 150}}>
-                        <Image source={{ uri: this.state.image }} style={{ width: "100%", height: "100%" }}></Image>
-                    </View> */}
+                    <View style={{ marginHorizontal: 32, marginTop: 32, height: 500}}>
+                        <Image source={{ uri: image }} style={{ width: "100%", height: "100%" }}></Image>
+                    </View>
+
                 </View>
             </Modal>
 
             <TouchableOpacity activeOpacity={0.5} style={styles.TouchableOpacityStyle} onPress={ () => setModalOpen(true)}>
                 <MaterialCommunityIcons name={"pencil-plus"} size={30} color="white" style={styles.FloatingButtonStyle}/>
             </TouchableOpacity>
-
-            
 
         </View>
     ); //End code for whole Feed screen
@@ -266,6 +323,11 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 20,
         fontWeight: "500"
+    },
+    headerImage: {
+        width: 36,
+        height: 36,
+        borderRadius: 36,
     },
     feed: {
         marginHorizontal: 16
