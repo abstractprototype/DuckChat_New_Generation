@@ -1,35 +1,23 @@
 import React, {useState, useEffect, useContext} from "react";
-import { View, Text, StyleSheet, Button, FlatList, RefreshControl } from "react-native";
+import { View, Text, StyleSheet, Button, FlatList, TouchableOpacity } from "react-native";
 import { List, Divider } from 'react-native-paper';
-import {Body, Container, H3, Header, ListItem, Title} from 'native-base'
 import LoadingScreen from "./LoadingScreen";
 
 import { FirebaseContext } from "../context/FirebaseContext";
-import { fetchRooms } from "../context/FirebaseNewContext";
-
-// import firebase from "firebase";
-// import "firebase/firestore";
 
 
 export default MessageScreen = ({ navigation }) => {
 
-     const firebase =  useContext(FirebaseContext);
-     //const mRooms = firebase.fetchRooms;
-
+    const firebase =  useContext(FirebaseContext);
     const [rooms, setRooms] = useState([])
     const [loading, setLoading] = useState(true);
 
-    // const getRooms = async() => {
-    //     const roomsData =  fetchRooms();
-    //     console.log("fetched rooms in getRooms(): ", roomsData)//undefined
-    //     //return roomsData
-    //     setRooms(roomsData);
-    // }
+  
     
 
     useEffect(() => {
 
-        console.log("fetching my rooms: ", firebase.fetchRooms(setRooms))
+        firebase.fetchRooms(setRooms)
         
         if (loading) {
             setLoading(false);
@@ -39,7 +27,7 @@ export default MessageScreen = ({ navigation }) => {
 
     useEffect(() => {
         
-        console.log("rooms is now: ", rooms)
+        rooms
 
     }, [rooms])
 
@@ -47,90 +35,39 @@ export default MessageScreen = ({ navigation }) => {
         return <LoadingScreen />
     }
 
-        // getRooms().then((rooms) => {
-        //     setRooms(rooms)
-        //     console.log("inside useEffect: ", rooms)
-        // }
-            
-        // ).catch((error) => 
-        //     console.log("Error: ", error.message)
-        // )
-        
+    const Item = ({ title }) => (
+        <View style={styles.item}>
+            <Text style={styles.title}>{title}</Text>
+        </View>
+    );
+
+    const renderItem = ({ item }) => (
+        <TouchableOpacity
+            onPress={ () => navigation.navigate("ChatRoomScreen", {thread: item}) }>
+               <Item title={item.name.createRoomName} />
+        </TouchableOpacity>
+     
+    );
     
 
-        // useEffect(() => {
-
-        //     // const unsubscribe = firebase.firestore()
-        //     //     .collection('chatrooms')
-        //     //     .get()
-        //     //     .then(snapshot => {
-        //     //         const threads = snapshot.map(doc => {
-        //     //             const roomObject = doc.data();
-        //     //             return{name: roomObject.name};
-        //     //         });
-
-        //     //         setThreads(threads);
-        //     //         console.log(threads)
-
-        //     //         if(loading) {
-        //     //             setLoading(false);
-        //     //         }
-        //     //     });
-
-
-            // const unsubscribe = firebase.firestore()
-            //     .collection('chatrooms')
-            //     .onSnapshot((querySnapshot) => {
-
-            //         querySnapshot.forEach((doc) => {
-            //             threads.push(doc.data().name);
-            //         });
-                    
-            //         setThreads(threads);
-            //         console.log("Threads: ", threads)
-            //         console.log("Fetched data: ", threads)
-
-            //         if(loading) {
-            //             setLoading(false);
-            //         }
-            //     });
+    return (
+        <View style={styles.container}>
             
-            // //unsubscribe listener, cleanup/remove the listener so the app doesn't become slow
-            // return unsubscribe();
+            <FlatList
+                data={rooms}
+                renderItem={renderItem}
+                keyExtractor={item => item.id}
+                showsVerticalScrollIndicator={false}
+            />
 
-        // }, []);
+            <Button 
+                title="Press me to create a chat room"
+                color="#f194ff"
+                onPress={ () => navigation.navigate("CreateJoinRoomScreen", {next: ""}) }> 
+            </Button>
 
-       
-
-        const Item = ({ title }) => (
-            <View style={styles.item}>
-              <Text style={styles.title}>{title}</Text>
-            </View>
-        );
-
-        const renderItem = ({ item }) => (
-            <Item title={item.name.roomName} />
-        );
-        
- 
-        return (
-            <View style={styles.container}>
-                
-                <FlatList
-                    data={rooms}
-                    renderItem={renderItem}
-                    keyExtractor={item => item.id}
-                    showsVerticalScrollIndicator={false}
-                />
-
-                <Button 
-                    title="Press me to create a chat room"
-                    color="#f194ff"
-                    onPress={ () => navigation.navigate("CreateJoinRoomScreen", {next: ""}) }> 
-                </Button>
-
-            </View>
-        );
+        </View>
+    );
 };
 
 const styles = StyleSheet.create({

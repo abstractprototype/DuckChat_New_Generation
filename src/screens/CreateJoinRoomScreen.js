@@ -12,16 +12,17 @@ import { UserContext } from "../context/UserContext";
 
 const CreateJoinRoomScreen = ({ navigation }) => {
 
-    const [roomName, setRoomName] = useState('');
+    const [createRoomName, setCreateRoomName] = useState('');
+    const [joinRoomName, setJoinRoomName] = useState('');
     const [loading, setLoading] = useState(false);
     const firebase = useContext(FirebaseContext);
 
     const handleButtonPress = async () => {
         setLoading(true);
 
-        const room =  {roomName};
+        const room =  {createRoomName};
 
-        if(roomName.length > 0) {
+        if(createRoomName.length > 0) {
             try {
                 const createdRoom = await firebase.createChatRoom(room);
     
@@ -32,7 +33,7 @@ const CreateJoinRoomScreen = ({ navigation }) => {
             }
         }
 
-        setRoomName('')
+        setCreateRoomName('')
     };
 
     return (
@@ -47,8 +48,8 @@ const CreateJoinRoomScreen = ({ navigation }) => {
                 <Title style={styles.title}>Create or Join a Chat Room</Title>
                 <FormInput
                     labelName='Room Name'
-                    value={roomName}
-                    onChangeText={(text) => setRoomName(text)}
+                    value={createRoomName}
+                    onChangeText={(text) => setCreateRoomName(text)}
                     clearButtonMode='while-editing'
                 />
                 <FormButton
@@ -56,7 +57,21 @@ const CreateJoinRoomScreen = ({ navigation }) => {
                     modeValue='contained'
                     labelStyle={styles.buttonLabel}
                     onPress={() => handleButtonPress()}
-                    disabled={roomName.length === 0}
+                    disabled={createRoomName.length === 0}
+                />
+                
+                <FormInput
+                    labelName='Room ID'
+                    value={joinRoomName}
+                    onChangeText={(text) => setJoinRoomName(text)}
+                    clearButtonMode='while-editing'
+                />
+                <FormButton
+                    title='Join Room'
+                    modeValue='contained'
+                    labelStyle={styles.buttonLabel}
+                    onPress={() => handleButtonPress()}
+                    disabled={joinRoomName.length === 0}
                 />
             </View>
 

@@ -26,14 +26,48 @@ const Firebase = {
         return firebase.auth().currentUser;
     },
 
-    createChatRoom: async (roomName) => {
+    createMessage: async (threadId, uid, uName, userEmail, userAvatar, messages) => {
+        //const messageId = uuid.v4(); //Generates a random message id
+
+        const {
+            _id,
+            createdAt,
+            text,
+            user
+          } = messages[0]
+        try {
+            await db.collection('chatrooms').doc(threadId).collection('messages').add({
+                _id,
+                createdAt,
+                text,
+                user:{
+                    _id: uid,
+                    name: uName,
+                    email: userEmail,
+                    avatar: userAvatar
+                }
+            });
+        }catch (error){
+            console.log("Error @createMessage: ", error.message);
+        }
+
+
+    },
+    createChatRoom: async (createRoomName) => {
 
         const roomId = uuid.v4(); //Generates a random room id
+        var inviteID = ""; //Generates a 5 digit invite ID 
+        var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    
+        for (var i = 0; i < 5; i++)
+            inviteID += possible.charAt(Math.floor(Math.random() * possible.length));
+    
 
         try {
             await db.collection("chatrooms").doc(roomId).set({
-                name: roomName,
+                name: createRoomName,
                 id: roomId,
+                inviteLink: inviteID,
                 //createdAt: currentDate,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
             });
@@ -42,12 +76,13 @@ const Firebase = {
         }
 
     },
-    createPost: async (avatar, uName, text, time, imageUri) => {
-
+    createPost: async (avatar, uName, text, imageUri) => {
+        
         const uid = Firebase.getCurrentUser().uid;
         const profilePic = Firebase.getCurrentUser().profilePhotoUrl;
         const postId = uuid.v4(); //Generates a random room id
-
+        const areaId = uuid.v4(); //Generates a random area id
+        
         try{
             // const photo = Firebase.getBlob(imageUri);
             // const imageRef = firebase.storage().ref("postImages").child(uid);
@@ -55,17 +90,14 @@ const Firebase = {
             //const downloadUrl = await imageRef.getDownloadURL();
 
             await db.collection("posts").doc(postId).set({
+                _id: postId,
                 avatar: avatar,
                 userid: uid,
                 username: uName,
-                postid: postId,
                 content: text,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                from: time
                 //picture: imageUri
             })
-
-      
 
         }catch(error){
             console.log("Error @createPost: ", error.message);
@@ -74,7 +106,63 @@ const Firebase = {
         
     
     },
+    
+    fetchMessages: (setMessages, threadId) => {
+        db.collection("chatrooms")
+        .doc(threadId)
+        .collection('messages')
+        .orderBy("createdAt", "desc")
+        .onSnapshot(snapshot => setMessages(
+            snapshot.docs.map(doc => ({
+                _id: doc.data()._id,
+                createdAt: doc.data().createdAt.toDate(),
+                text: doc.data().text,
+                user: doc.data().user
+            }))
+        ))
+        
+    },
 
+    fetchRooms: (setRooms) => {
+
+        db.collection("chatrooms")
+        .orderBy("timestamp", "asc")
+        .onSnapshot((querySnapshot) => {
+            var rooms = [];
+            querySnapshot.forEach((doc) => {
+                rooms.push(doc.data());
+                
+            });
+
+            //console.log("Current rooms in fetchRooms: ", rooms);
+            if(setRooms)
+            {
+                setRooms(rooms)
+            }
+          
+            return rooms;
+        });
+    },
+
+    fetchPosts: (setPosts) => {
+        db
+        .collection("posts")
+        .orderBy("timestamp", "desc")
+        .onSnapshot((querySnapshot) => {
+            var posts = [];
+            querySnapshot.forEach((doc) => {
+                posts.push(doc.data());
+                
+            });
+            //console.log("Current posts in fetchPosts: ", posts);
+            if(setPosts)
+            {
+                setPosts(posts)
+            }
+            
+            return posts;
+        });
+    },
 
     createUser: async (user) => {
         try {
@@ -84,10 +172,12 @@ const Firebase = {
             let profilePhotoUrl = "default";
 
             await db.collection("users").doc(uid).set({
+                displayName: user.username,
                 username: user.username,
                 email: user.email,
                 password: user.password,
                 profilePhotoUrl,
+                photoUrl: user.profilePhoto
             });
 
             if (user.profilePhoto) {
@@ -144,53 +234,12 @@ const Firebase = {
     getUserInfo: async (uid) => {
         try {
             const user = await db.collection("users").doc(uid).get();
-
             if (user.exists) {
                 return user.data();
             }
         } catch (error) {
             console.log("Error @getUserInfo: ", error);
         }
-    },
-
-    fetchRooms: (setRooms) => {
-
-        db.collection("chatrooms")
-        .orderBy("timestamp", "asc")
-        .onSnapshot((querySnapshot) => {
-            var rooms = [];
-            querySnapshot.forEach((doc) => {
-                rooms.push(doc.data());
-                
-            });
-
-            //console.log("Current rooms in fetchRooms: ", rooms);
-            if(setRooms)
-            {
-                setRooms(rooms)
-            }
-          
-            return rooms;
-        });
-    },
-
-    fetchPosts: (setPosts) => {
-        db.collection("posts")
-        .orderBy("timestamp", "desc")
-        .onSnapshot((querySnapshot) => {
-            var posts = [];
-            querySnapshot.forEach((doc) => {
-                posts.push(doc.data());
-                
-            });
-            //console.log("Current posts in fetchPosts: ", posts);
-            if(setPosts)
-            {
-                setPosts(posts)
-            }
-            console.log(posts)
-            return posts;
-        });
     },
 
     logOut: async () => {

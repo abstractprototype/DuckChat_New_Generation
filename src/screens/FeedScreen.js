@@ -9,6 +9,7 @@ import { FirebaseContext } from "../context/FirebaseContext";
 import { UserContext } from "../context/UserContext";
 import * as Permissions from "expo-permissions";
 import * as ImagePicker from "expo-image-picker";
+import { right } from 'styled-system'
 
 
    //Temporary posts data
@@ -61,8 +62,10 @@ import * as ImagePicker from "expo-image-picker";
 
 export default FeedScreen = () => {
 
-    const [modalOpen, setModalOpen] = useState(false);
+    const [postModalOpen, setPostModalOpen] = useState(false);
+    const [areaModalOpen, setAreaModalOpen] = useState(false);
     const [text, setText] = useState("");
+    const [areaText, setAreaText] = useState("");
     const [image, setImage] = useState();
     const [loading, setLoading] = useState(false);
     const [posts, setPosts] = useState([]);
@@ -107,20 +110,21 @@ export default FeedScreen = () => {
 
     const handlePost = async () => {
         
-        setLoading(true);
+        //setLoading(true);
         const message = { text };
         const imageUri = { image }; //The image being sent
         const avatar = { uri: user.profilePhotoUrl }; //The user's profile picture
         const uName = (user.username);
-        const from = (moment().fromNow()) ;
+        //const from = (moment().fromNow());
         if(text.length > 0) {
             try {
-                const createdPost = await firebase.createPost(avatar, uName, message, from, imageUri);
+         
+                const createdPost = await firebase.createPost(avatar, uName, message, imageUri);
     
             } catch (error) {
                 console.log("Error @createChatRoom: ", error);
             } finally {
-                setLoading(false);
+                //setLoading(false);
             }
         }
         //Resets text back to placeholder after making a post
@@ -201,7 +205,7 @@ export default FeedScreen = () => {
                     <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                         <View>
                             <Text style={styles.name}>{item.username}</Text>
-                            <Text style={styles.timestamp}>{moment().fromNow()}</Text>
+                            <Text style={styles.timestamp}>{new Date().getTime()}</Text>
                         </View>
                         <Ionicons name="reorder-three-outline" size={24} color="#73788B" />
                     </View>
@@ -235,21 +239,29 @@ export default FeedScreen = () => {
                     require("../../assets/ducklogo.png")    
                 } style={styles.headerImage}> 
             </Image>
+            <TouchableOpacity style={styles.headerRight} onPress={ () => setAreaModalOpen(true)}>
+                <Text>CSULB</Text>
+            </TouchableOpacity>
+            
+            {/* Plays an audio sound so nearby people can confirm similar users of the app */}
+            <TouchableOpacity style={styles.headerLeft}> 
+                <Text>Quack</Text>
+            </TouchableOpacity>
             </View>
 
             <FlatList 
                 style={styles.feed} 
                 data={posts} 
                 renderItem={renderPost} 
-                keyExtractor={(item, index) => item.id}
+                keyExtractor={(item, index) => item._id}
                 showsVerticalScrollIndicator={false}
                 >
             </FlatList>
 
-            <Modal visible={modalOpen} animationType='slide'>
+            <Modal visible={postModalOpen} animationType='slide'>
                 <View>
                     <View style={styles.modalHeader}>
-                        <TouchableOpacity onPress={ () => setModalOpen(false)}>
+                        <TouchableOpacity onPress={ () => setPostModalOpen(false)}>
                             <MaterialCommunityIcons name={"close-thick"} size={30}/>
                         </TouchableOpacity>
                         <View style={styles.sendPostButton}>
@@ -292,7 +304,44 @@ export default FeedScreen = () => {
                 </View>
             </Modal>
 
-            <TouchableOpacity activeOpacity={0.5} style={styles.TouchableOpacityStyle} onPress={ () => setModalOpen(true)}>
+            <Modal visible={areaModalOpen} animationType='slide'>
+                <View>
+                    <View style={styles.modalHeader}>
+                        <TouchableOpacity onPress={ () => setAreaModalOpen(false)}>
+                            <MaterialCommunityIcons name={"close-thick"} size={30}/>
+                        </TouchableOpacity>
+                        <View style={styles.joinAreaButton}>
+                            <Button 
+                                title="Join the area" 
+                                color="#2196F3"
+                                //onPress={() => handlePost()}
+                            >
+                            </Button>
+                        </View>
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        {/* <Image source={
+                            user.profilePhotoUrl === "default"
+                            ? require("../../assets/defaultProfilePhoto.jpg")
+                            : { uri: user.profilePhotoUrl }
+                        } style={styles.avatar}> 
+                        </Image> */}
+
+                        <TextInput 
+                            autoFocus={true} 
+                            multiline={false} 
+                            numberOfLines={2} 
+                            style={{flex: 1}} 
+                            placeholder="Where do you want to go?"
+                            onChangeText={(b) => setAreaText(b)}
+                            value={areaText}>
+                        </TextInput>
+                    </View>
+                </View>
+            </Modal>
+
+            <TouchableOpacity activeOpacity={0.5} style={styles.TouchableOpacityStyle} onPress={ () => setPostModalOpen(true)}>
                 <MaterialCommunityIcons name={"pencil-plus"} size={30} color="white" style={styles.FloatingButtonStyle}/>
             </TouchableOpacity>
 
@@ -328,6 +377,20 @@ const styles = StyleSheet.create({
         width: 36,
         height: 36,
         borderRadius: 36,
+    },
+    headerRight: {
+        position: 'absolute',
+        left: 525,
+        right: 0,
+        top: 20,
+        bottom: 0,
+    },
+    headerLeft: {
+        position: 'absolute',
+        left: 20,
+        right: 500,
+        top: 20,
+        bottom: 0,
     },
     feed: {
         marginHorizontal: 16
@@ -413,6 +476,10 @@ const styles = StyleSheet.create({
         paddingTop: 10,
         paddingRight: 10
     },
+    joinAreaButton: {
+        paddingTop: 10,
+        paddingRight: 10
+    },
     inputContainer: {
         margin: 32,
         flexDirection: "row"
@@ -420,7 +487,8 @@ const styles = StyleSheet.create({
     photo: {
         alignItems: "flex-end",
         marginHorizontal: 32
-    }
+    },
+
   
 
   
