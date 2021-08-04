@@ -53,23 +53,22 @@ const Firebase = {
 
 
     },
-    createChatRoom: async (createRoomName) => {
+    createChatRoom: async (createRoomName, roomOwnerId) => {
 
         const roomId = uuid.v4(); //Generates a random room id
         var inviteID = ""; //Generates a 5 digit invite ID 
         var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    
         for (var i = 0; i < 5; i++)
             inviteID += possible.charAt(Math.floor(Math.random() * possible.length));
     
 
         try {
             await db.collection("chatrooms").doc(roomId).set({
+                room_owner: roomOwnerId,
                 name: createRoomName,
                 id: roomId,
                 inviteLink: inviteID,
-                //createdAt: currentDate,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             });
         }catch (error) {
             console.log("Error @createChatRoom: ", error.message);
@@ -103,8 +102,6 @@ const Firebase = {
             console.log("Error @createPost: ", error.message);
         }
 
-        
-    
     },
     
     fetchMessages: (setMessages, threadId) => {
@@ -126,7 +123,7 @@ const Firebase = {
     fetchRooms: (setRooms) => {
 
         db.collection("chatrooms")
-        .orderBy("timestamp", "asc")
+        .orderBy("createdAt", "asc")
         .onSnapshot((querySnapshot) => {
             var rooms = [];
             querySnapshot.forEach((doc) => {

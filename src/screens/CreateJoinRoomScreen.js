@@ -8,14 +8,18 @@ import FormButton from '../components/FormButton';
 
 //import firestore from '@react-native-firebase/firestore';
 import { FirebaseContext } from "../context/FirebaseContext";
-import { UserContext } from "../context/UserContext";
+
 
 const CreateJoinRoomScreen = ({ navigation }) => {
 
     const [createRoomName, setCreateRoomName] = useState('');
     const [joinRoomName, setJoinRoomName] = useState('');
+    const [members, setMembers] = useState([]);
     const [loading, setLoading] = useState(false);
     const firebase = useContext(FirebaseContext);
+    const roomOwnerId = firebase.getCurrentUser().uid;
+
+    //console.log("current owner of room: ", roomOwnerId)
 
     const handleButtonPress = async () => {
         setLoading(true);
@@ -24,7 +28,7 @@ const CreateJoinRoomScreen = ({ navigation }) => {
 
         if(createRoomName.length > 0) {
             try {
-                const createdRoom = await firebase.createChatRoom(room);
+                const createdRoom = await firebase.createChatRoom(room, roomOwnerId);
     
             } catch (error) {
                 console.log("Error @createChatRoom: ", error);
@@ -34,7 +38,7 @@ const CreateJoinRoomScreen = ({ navigation }) => {
         }
 
         setCreateRoomName('')
-    };
+    }
 
     return (
         <View style={styles.rootContainer}>
@@ -63,7 +67,7 @@ const CreateJoinRoomScreen = ({ navigation }) => {
                 <FormInput
                     labelName='Room ID'
                     value={joinRoomName}
-                    onChangeText={(text) => setJoinRoomName(text)}
+                    onChangeText={(joinId) => setJoinRoomName(joinId)}
                     clearButtonMode='while-editing'
                 />
                 <FormButton

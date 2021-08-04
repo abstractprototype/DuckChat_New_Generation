@@ -16,7 +16,6 @@ export default ChatRoomScreen = ({ route }) => {
     const userInfo = firebase.getUserInfo(uid);
 
     
-    
     const [messages, setMessages] = useState([]);
       /**
          * Mock message data

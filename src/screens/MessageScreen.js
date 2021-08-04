@@ -12,11 +12,8 @@ export default MessageScreen = ({ navigation }) => {
     const [rooms, setRooms] = useState([])
     const [loading, setLoading] = useState(true);
 
-  
-    
-
     useEffect(() => {
-
+     
         firebase.fetchRooms(setRooms)
         
         if (loading) {
@@ -26,7 +23,7 @@ export default MessageScreen = ({ navigation }) => {
     }, [])
 
     useEffect(() => {
-        
+     
         rooms
 
     }, [rooms])
