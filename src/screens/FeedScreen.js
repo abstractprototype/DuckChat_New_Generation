@@ -213,13 +213,17 @@ export default FeedScreen = () => {
                     <Image source={item.image} style={styles.postImage} resizeMode="cover" />
                     <View style={{ flexDirection: "row" }}>
                         <View style={styles.postLikes}>
-                            <Ionicons name="heart-outline" size={24} color="#73788B" style={{ marginRight: 5 }} />
+                            <TouchableOpacity>
+                                <Ionicons name="heart-outline" size={24} color="#73788B" style={{ marginRight: 5 }} />  
+                            </TouchableOpacity>
                             <Text>
                                 {/* {item.likes} */}
                             </Text>
                         </View>
                         <View style={styles.postComments}>
-                            <Ionicons name="chatbubble-ellipses-outline" size={24} color="#73788B" style={{ marginRight: 5 }} />
+                            <TouchableOpacity>
+                                <Ionicons name="chatbubble-ellipses-outline" size={24} color="#73788B" style={{ marginRight: 5 }} />
+                            </TouchableOpacity>
                             <Text>
                                 {/* {item.comments} */}
                             </Text>

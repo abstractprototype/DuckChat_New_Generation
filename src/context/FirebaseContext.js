@@ -19,7 +19,6 @@ if (!firebase.apps.length) {
 const db = firebase.firestore();
 const currentDate = moment().format('MMMM Do YYYY, h:mm:ss a');
 
-
 const Firebase = {
 
     getCurrentUser: () => {

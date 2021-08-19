@@ -14,7 +14,6 @@ export default ChatRoomScreen = ({ route }) => {
     const { thread } = route.params;
     const uid = firebase.getCurrentUser().uid;
     const userInfo = firebase.getUserInfo(uid);
-
     
     const [messages, setMessages] = useState([]);
       /**
